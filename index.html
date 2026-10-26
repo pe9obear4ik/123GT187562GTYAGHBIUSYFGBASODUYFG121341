@@ -234,8 +234,8 @@ function renderTrail(){
  $('marks').innerHTML=ms.map(function(m,i){var arm=(delMid===mk(m));return'<li><b>'+(i+1)+'</b><span>'+esc(m.label||'Miejsce bez nazwy')+'<small>'+fmt(m.ts)+(m.lat==null?' · bez lokalizacji':' · <a href="'+gmaps(m)+'" target="_blank" rel="noopener">Otwórz w Mapach</a>')+'</small></span><button class="delm" type="button" data-mid="'+esc(mk(m))+'" aria-label="Usuń punkt">'+(arm?'Na pewno?':'Usuń')+'</button></li>'}).join('');
  renderPhotos();
  applyTheme();
- if(useMap()&&pos.length){svg.hidden=true;$('map').hidden=false;drawMap(pos);return}
- $('map').hidden=true;svg.hidden=false;
+ if(useMap()&&pos.length){svg.style.display='none';$('map').hidden=false;drawMap(pos);return}
+ $('map').hidden=true;svg.style.display='';
  svg.innerHTML=pos.length?trailInner(pos):'<text x="160" y="114" text-anchor="middle" fill="currentColor" opacity=".55" font-size="13" font-family="Instrument Sans,system-ui,sans-serif">Tu pojawi się nasz szlak</text>'}
 var delMid=null,delMT=null;
 function deleteMark(mid){
