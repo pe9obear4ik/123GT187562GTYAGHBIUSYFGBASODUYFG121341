@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Włoska wyprawa – dziennik trasy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#E5EDED;--card:#EEF4F4;--ink:#1D2B33;--accent:#2F5D6B;--muted:#5F747D;--line:#B9CBCD;color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#111A1D;--card:#182427;--ink:#E3ECEC;--accent:#86B8C7;--muted:#8FA4AC;--line:#2C3F44;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#111A1D;--card:#182427;--ink:#E3ECEC;--accent:#86B8C7;--muted:#8FA4AC;--line:#2C3F44;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.45 "Instrument Sans",system-ui,sans-serif}
+.wrap{max-width:560px;margin:0 auto;padding:28px 18px 56px}
+.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400}
+.kick{color:var(--muted);font-size:13px;margin:0}
+h1{font-size:46px;line-height:1.02;margin:6px 0 22px}
+h2{font-size:28px;margin:0 0 8px}
+.strip{display:flex;justify-content:space-between;position:relative;margin:0 4px 30px}
+.strip::before{content:"";position:absolute;left:8%;right:8%;top:9px;border-top:1.5px dotted var(--muted)}
+.node{position:relative;text-align:center;flex:1;font-size:12px;color:var(--muted)}
+.dot{display:block;width:14px;height:14px;margin:2px auto 7px;border-radius:50%;background:var(--paper);border:1.6px solid var(--ink)}
+.node.done .dot{background:var(--ink)}
+.node.cur .dot{width:20px;height:20px;margin:-1px auto 4px;background:var(--accent);border-color:var(--accent)}
+.node.cur{color:var(--accent);font-family:"Instrument Serif",Georgia,serif;font-size:17px}
+section{margin-bottom:26px}
+.item{display:flex;gap:14px;align-items:center;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 8px;color:inherit;font:inherit;cursor:pointer}
+.box{flex:none;width:30px;height:30px;border:1.6px solid var(--ink);border-radius:8px;display:grid;place-items:center;font-size:18px;line-height:1}
+.item[aria-pressed="true"] .box{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.item[aria-pressed="true"] .nm{text-decoration:line-through;text-decoration-thickness:1px}
+.nm{font-family:"Instrument Serif",Georgia,serif;font-size:21px;line-height:1.15;display:block}
+.sub{font-size:13px;color:var(--muted);display:block}
+.ts{font-size:12px;color:var(--accent);display:block}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input,select{width:100%;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+.btn{display:inline-block;margin-top:12px;font:600 15px "Instrument Sans",system-ui,sans-serif;color:var(--paper);background:var(--accent);border:0;border-radius:12px;padding:13px 18px;cursor:pointer;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+.msg{font-size:13px;color:var(--muted);min-height:20px;margin:8px 0 0}
+.trail{width:100%;height:auto;display:block;margin-top:14px;border-radius:12px;background:var(--paper);border:1px dashed var(--line)}
+ol.marks{list-style:none;margin:12px 0 0;padding:0}
+ol.marks li{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+ol.marks b{flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--paper);display:grid;place-items:center;font-size:12px}
+ol.marks small{display:block;color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.grid figure{margin:0}
+.grid img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block;background:var(--paper)}
+.grid figcaption{font-family:"Instrument Serif",Georgia,serif;font-size:17px;margin-top:4px;line-height:1.15}
+.grid small{display:block;font:400 12px "Instrument Sans",system-ui,sans-serif;color:var(--muted)}
+.sync{font-size:12px;color:var(--muted);margin:-14px 0 22px}
+[hidden]{display:none!important}
+.grid img{cursor:zoom-in}
+h2[data-k]{cursor:pointer}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(8,14,16,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.lb img{max-width:100%;max-height:78vh;object-fit:contain;border-radius:8px}
+.lb p{color:#E3ECEC;font:20px/1.2 "Instrument Serif",Georgia,serif;margin:12px 0 0;text-align:center}
+.lb button.lbdel{position:static;width:auto;height:auto;border-radius:12px;padding:11px 18px;margin-top:14px;font:600 14px "Instrument Sans",system-ui,sans-serif}
+.lb button{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:14px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.45);color:#fff;font-size:26px;line-height:1;cursor:pointer}
+.foot{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+@media (prefers-reduced-motion:no-preference){.item,.btn{transition:background .15s,border-color .15s}body{transition:background .35s,color .35s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kick">Włoska wyprawa</p>
+  <h1 class="serif">Nasza trasa</h1>
+  <div class="strip" id="strip" aria-label="Postęp trasy"></div>
+  <p class="sync" id="sync">Tryb lokalny: dane i zdjęcia zostają na tym telefonie. Na końcu pobierz „pamiątkę” i wyślij ją dalej.</p>
+  <section class="panel" id="login" hidden>
+    <h2 class="serif">Zaloguj się</h2>
+    <label for="em">E-mail</label>
+    <input id="em" type="email" autocomplete="username">
+    <label for="pw">Hasło</label>
+    <input id="pw" type="password" autocomplete="current-password">
+    <button class="btn" id="logb" type="button">Zaloguj</button>
+    <p class="msg" id="logmsg" role="status"></p>
+  </section>
+  <div id="app">
+  <div id="cities"></div>
+
+  <section class="panel">
+    <h2 class="serif">Jesteśmy tu</h2>
+    <label for="city">Miasto</label>
+    <select id="city"></select>
+    <label for="label">Co to za miejsce?</label>
+    <input id="label" type="text" placeholder="np. kawiarnia nad morzem" autocomplete="off">
+    <div class="row"><button class="btn" id="mark" type="button">Zaznacz miejsce</button>
+    <label class="btn ghost" id="photoBtn" hidden>Dodaj zdjęcie<input type="file" id="file" accept="image/*" hidden></label></div>
+    <p class="msg" id="msg" role="status"></p>
+    <svg class="trail" id="trail" viewBox="0 0 320 220" role="img" aria-label="Schemat naszej trasy w wybranym mieście"></svg>
+    <ol class="marks" id="marks"></ol>
+    <div class="grid" id="photos"></div>
+  </section>
+
+  <div class="foot">
+    <a class="btn" href="https://maps.app.goo.gl/MpJrHJRis2yCRYxx8" target="_blank" rel="noopener">Otwórz mapę wyprawy</a>
+    <button class="btn ghost" id="export" type="button" hidden>Pobierz pamiątkę</button>
+    <button class="btn ghost" id="logout" type="button" hidden>Wyloguj</button>
+    <button class="btn ghost" id="reset" type="button">Wyczyść dane</button>
+  </div>
+  </div>
+</div>
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Podgląd zdjęcia"><button type="button" id="lbx" aria-label="Zamknij">×</button><img id="lbi" alt=""><p id="lbc"></p><button type="button" class="lbdel" id="lbd">Usuń zdjęcie</button></div>
+<script>
+(function(){
+var CITIES=[
+ {k:'z',n:'Zagrzeb',pts:[{id:'z1',t:'FlixBus Zagrzeb, wyjazd',a:'Avenija Marina Držića 4, 10000 Zagreb'},{id:'z2',t:'FlixBus Zagrzeb, powrót',a:'Avenija Marina Držića 4, 10000 Zagreb'}]},
+ {k:'t',n:'Triest',pts:[{id:'t1',t:'FlixBus Triest',a:'34135 Trieste'},{id:'t2',t:'Spanie w Triest',a:'Via Felice Venezian 26, 34124 Trieste'}]},
+ {k:'w',n:'Werona',pts:[{id:'w1',t:'FlixBus Werona, Porta Nuova',a:'Piazzale XXV Aprile 8, 37138 Verona'},{id:'w2',t:'Spanie w Weronie',a:'Piazza Renato Simoni 34, 37122 Verona'}]},
+ {k:'v',n:'Wenecja',pts:[{id:'v1',t:'FlixBus Wenecja, Tronchetto',a:'30135 Venezia'}]}
+];
+/* Supabase: wklej Project URL i klucz anon/publishable (Project Settings, API). Puste = tryb lokalny. */
+var SB_URL='https://bdhuywrgislokwdezpcw.supabase.co',SB_KEY='sb_publishable_Ul-hP77DCNtxX1IJcnEYqQ_OeUWxV9y';
+function sbOn(){return!!(SB_URL&&SB_KEY)}
+var auth=null,AKEY='wlosko-auth',sc={},scT=0,scN=0,lastSig='';
+function base(){return SB_URL.replace(/\/$/,'')}
+function loadAuth(){try{auth=JSON.parse(localStorage.getItem(AKEY))}catch(e){auth=null}}
+function saveAuth(){try{if(auth)localStorage.setItem(AKEY,JSON.stringify(auth));else localStorage.removeItem(AKEY)}catch(e){}}
+function setSession(j){auth={access:j.access_token,refresh:j.refresh_token,exp:Date.now()+((j.expires_in||3600)-30)*1000};saveAuth()}
+function authReq(grant,body){return fetch(base()+'/auth/v1/token?grant_type='+grant,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error_description||j.msg||j.message||('Błąd '+r.status));return j})})}
+function ensureTok(){
+ if(!auth)return Promise.reject(new Error('login'));
+ if(Date.now()<auth.exp)return Promise.resolve();
+ return authReq('refresh_token',{refresh_token:auth.refresh}).then(setSession).catch(function(){auth=null;saveAuth();showLogin(true,1);throw new Error('login')})}
+function sb(method,path,body,hdr){
+ return ensureTok().then(function(){
+  var h={apikey:SB_KEY,Authorization:'Bearer '+auth.access},isB=(typeof Blob!=='undefined')&&body instanceof Blob,k;
+  if(body&&!isB)h['Content-Type']='application/json';
+  for(k in (hdr||{}))h[k]=hdr[k];
+  return fetch(base()+path,{method:method,headers:h,body:body?(isB?body:JSON.stringify(body)):undefined})}).then(function(r){
+  if(r.status===401){auth=null;saveAuth();showLogin(true,1);throw new Error('login')}
+  if(!r.ok)return r.text().then(function(t){throw new Error('Supabase '+r.status+(t?': '+t.slice(0,120):''))});
+  return r.status===204?null:r.text().then(function(t){try{return t?JSON.parse(t):null}catch(e){return null}})})}
+function signAll(ps){
+ var paths=ps.map(function(q){return q.path}).filter(Boolean);
+ if(!paths.length)return Promise.resolve();
+ var stale=paths.some(function(x){return!sc[x]})||(Date.now()-scT>5*3600*1000);
+ if(!stale)return Promise.resolve();
+ return sb('POST','/storage/v1/object/sign/photos',{expiresIn:21600,paths:paths}).then(function(a){
+  (a||[]).forEach(function(o,i){var u=o&&o.signedURL;if(!u)return;if(u.indexOf('/storage/v1')!==0)u='/storage/v1'+u;sc[o.path||paths[i]]=base()+u});scT=Date.now();scN++})}
+function refresh(){
+ return Promise.all([sb('GET','/rest/v1/done?select=id,ts'),sb('GET','/rest/v1/marks?select=*&order=ts.asc'),sb('GET','/rest/v1/photos?select=*&order=ts.asc')]).then(function(r){
+  return signAll(r[2]).then(function(){
+   var sig=JSON.stringify(r)+scN;if(sig===lastSig)return;lastSig=sig;
+   var d={};r[0].forEach(function(x){d[x.id]=Number(x.ts)});st.done=d;
+   st.marks=r[1].map(function(m){m.ts=Number(m.ts);return m});
+   st.photos=r[2].map(function(q){q.ts=Number(q.ts);q.url=sc[q.path];return q});
+   renderStrip();renderCities();renderSelect($('city').value);renderTrail()})}).catch(onErr)}
+function showLogin(v,expired){$('login').hidden=!v;$('app').hidden=v;if(v&&expired)$('logmsg').textContent='Sesja wygasła, zaloguj się ponownie.'}
+var KEY='wlosko-dziennik-v1',st={done:{},marks:[],photos:[]},mode='local',db=null,assets=null;
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function fmt(ts){return new Date(ts).toLocaleString('pl-PL',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}
+function loadLocal(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);st.done=o.done||{};st.marks=o.marks||[]}}catch(e){}}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify({done:st.done,marks:st.marks}))}catch(e){}}
+function say(t){$('msg').textContent=t}
+function onErr(e){if(e&&e.message==='login')return;say('Błąd synchronizacji: '+((e&&e.message)||'spróbuj ponownie'))}
+function allDone(c){return c.pts.every(function(p){return st.done[p.id]})}
+function nodes(){return[{n:'Zagrzeb',d:!!st.done.z1},{n:'Triest',d:allDone(CITIES[1])},{n:'Werona',d:allDone(CITIES[2])},{n:'Wenecja',d:allDone(CITIES[3])},{n:'Zagrzeb',d:!!st.done.z2}]}
+function curCity(){var i=nodes().findIndex(function(x){return!x.d});return(i<1||i>3)?'z':CITIES[i].k}
+function renderStrip(){var ns=nodes(),cur=ns.findIndex(function(x){return!x.d});
+ $('strip').innerHTML=ns.map(function(x,i){return'<div class="node'+(x.d?' done':'')+(i===cur?' cur':'')+'"><span class="dot"></span>'+x.n+'</div>'}).join('')}
+function renderCities(){
+ $('cities').innerHTML=CITIES.map(function(c){return'<section><h2 class="serif" data-k="'+c.k+'">'+c.n+'</h2>'+c.pts.map(function(p){var d=st.done[p.id];
+  return'<button class="item" type="button" data-id="'+p.id+'" aria-pressed="'+(d?'true':'false')+'"><span class="box">'+(d?'✓':'')+'</span><span><span class="nm">'+p.t+'</span><span class="sub">'+p.a+'</span>'+(d?'<span class="ts">Byliśmy: '+fmt(d)+'</span>':'')+'</span></button>'}).join('')+'</section>'}).join('')}
+function renderSelect(keep){var s=$('city'),v=keep||s.value||curCity();
+ s.innerHTML=CITIES.map(function(c){return'<option value="'+c.k+'">'+c.n+'</option>'}).join('');s.value=v}
+var curPid=null,delArmed=false,delTimer=null;
+function resetDel(){delArmed=false;clearTimeout(delTimer);$('lbd').textContent='Usuń zdjęcie'}
+function openLb(im){var fc=im.parentNode.querySelector('figcaption');curPid=im.getAttribute('data-pid');resetDel();$('lbi').src=im.currentSrc||im.src;$('lbi').alt=im.alt;$('lbc').textContent=fc&&fc.firstChild?fc.firstChild.textContent:'';$('lb').hidden=false;$('lbx').focus()}
+function closeLb(){$('lb').hidden=true;$('lbi').removeAttribute('src');curPid=null;resetDel()}
+function deletePhoto(pid){
+ var p=st.photos.find(function(x){return String(x.id||x.docId)===pid});if(!p){closeLb();return}
+ if(mode==='sb'){sb('DELETE','/rest/v1/photos?id=eq.'+p.id).then(function(){return p.path?sb('DELETE','/storage/v1/object/photos/'+p.path).catch(function(){}):null}).then(function(){lastSig='';return refresh()}).then(function(){closeLb();say('Zdjęcie usunięte.')}).catch(onErr);return}
+ if(mode==='db'){
+  db.doc('photos/'+p.docId).delete()
+   .then(function(){if(assets&&p.asset)return assets.delete(p.asset).catch(function(){})})
+   .then(function(){closeLb();say('Zdjęcie usunięte.')}).catch(onErr);return}
+ try{var t=idb.transaction('p','readwrite');t.objectStore('p').delete(p.id);
+  t.oncomplete=function(){st.photos=st.photos.filter(function(x){return x!==p});if(urls[p.id]){URL.revokeObjectURL(urls[p.id]);delete urls[p.id]}renderPhotos();closeLb();say('Zdjęcie usunięte.')};
+  t.onerror=function(){say('Nie udało się usunąć zdjęcia.')}}catch(e){say('Nie udało się usunąć zdjęcia.')}}
+var PAL={
+ z:{l:['#F6E7E3','#FBF1EE','#2A1E21','#9B3F4B','#7B6468','#E3C9C5'],d:['#1E1517','#281C1F','#F3E4E1','#E89AA3','#B79EA2','#4A3639']},
+ t:{l:['#E5EDED','#EEF4F4','#1D2B33','#2F5D6B','#5F747D','#B9CBCD'],d:['#111A1D','#182427','#E3ECEC','#86B8C7','#8FA4AC','#2C3F44']},
+ w:{l:['#F1E6D8','#F7EFE4','#2B2118','#9A4A2A','#766654','#D8C7B0'],d:['#1D1710','#271F16','#F0E6D8','#E39A70','#B3A18A','#473B2C']},
+ v:{l:['#E6E6F0','#EFEFF7','#1F1F33','#4B4A9B','#666680','#C5C5DA'],d:['#14141F','#1D1D2B','#E6E6F2','#A9A8F0','#9696B3','#34344D']}};
+function tv(a){return['paper','card','ink','accent','muted','line'].map(function(n,i){return'--'+n+':'+a[i]}).join(';')}
+function themeCss(){return CITIES.map(function(c){var q=PAL[c.k];return':root[data-city="'+c.k+'"]{'+tv(q.l)+'}@media (prefers-color-scheme:dark){:root:not([data-theme="light"])[data-city="'+c.k+'"]{'+tv(q.d)+'}}:root[data-theme="dark"][data-city="'+c.k+'"]{'+tv(q.d)+'}'}).join('')}
+function scCss(){return CITIES.map(function(c){var q=PAL[c.k];return'.c-'+c.k+'{'+tv(q.l)+'}@media(prefers-color-scheme:dark){.c-'+c.k+'{'+tv(q.d)+'}}'}).join('')}
+var tsty=document.createElement('style');tsty.textContent=themeCss();document.head.appendChild(tsty);
+function applyTheme(){document.documentElement.setAttribute('data-city',$('city').value||'t')}
+var urls={};
+function pu(p){if(p.url)return p.url;if(p.blob)return urls[p.id]||(urls[p.id]=URL.createObjectURL(p.blob));return'/_blob/'+p.asset}
+function renderPhotos(){
+ var k=$('city').value,ps=st.photos.filter(function(p){return p.city===k});
+ $('photos').innerHTML=ps.map(function(p){return'<figure><img tabindex="0" data-pid="'+esc(p.id||p.docId||'')+'" loading="lazy" src="'+esc(pu(p))+'" alt="'+esc(p.label||'Zdjęcie z wyprawy')+'"><figcaption>'+esc(p.label||'Bez nazwy')+'<small>'+fmt(p.ts)+'</small></figcaption></figure>'}).join('')}
+function trailInner(pos){
+ var la=pos.map(function(m){return m.lat}),lo=pos.map(function(m){return m.lon}),mid=(Math.max.apply(0,la)+Math.min.apply(0,la))/2,cs=Math.cos(mid*Math.PI/180);
+ var xs=lo.map(function(v){return v*cs}),minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),maxy=Math.max.apply(0,la),miny=Math.min.apply(0,la);
+ var sp=Math.max(maxx-minx,maxy-miny)||1,sc=170/sp,ox=160-((maxx-minx)*sc)/2,oy=110-((maxy-miny)*sc)/2;
+ var pts=pos.map(function(m,i){return[ox+(xs[i]-minx)*sc,oy+(maxy-m.lat)*sc]});
+ var ln=pts.length>1?'<polyline points="'+pts.map(function(q){return q[0].toFixed(1)+','+q[1].toFixed(1)}).join(' ')+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round" stroke-linejoin="round"/>':'';
+ return ln+pts.map(function(q,i){return'<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="9" fill="var(--accent)"/><text x="'+q[0].toFixed(1)+'" y="'+(q[1]+4).toFixed(1)+'" text-anchor="middle" font-size="11" font-weight="600" fill="var(--paper)" font-family="system-ui,sans-serif">'+(i+1)+'</text>'}).join('')}
+function renderTrail(){
+ var k=$('city').value,ms=st.marks.filter(function(m){return m.city===k}),svg=$('trail'),pos=ms.filter(function(m){return m.lat!=null});
+ $('marks').innerHTML=ms.map(function(m,i){return'<li><b>'+(i+1)+'</b><span>'+esc(m.label||'Miejsce bez nazwy')+'<small>'+fmt(m.ts)+(m.lat==null?' · bez lokalizacji':'')+'</small></span></li>'}).join('');
+ renderPhotos();
+ applyTheme();
+ svg.innerHTML=pos.length?trailInner(pos):'<text x="160" y="114" text-anchor="middle" fill="currentColor" opacity=".55" font-size="13" font-family="Instrument Sans,system-ui,sans-serif">Tu pojawi się nasz szlak</text>'}
+function renderAll(){renderStrip();renderCities();renderTrail()}
+
+/* ---- store: shared db when available, otherwise this phone only ---- */
+function toggleDone(id){
+ if(mode==='sb'){var on0=!st.done[id];(on0?sb('POST','/rest/v1/done?on_conflict=id',[{id:id,ts:Date.now()}],{Prefer:'resolution=merge-duplicates'}):sb('DELETE','/rest/v1/done?id=eq.'+encodeURIComponent(id))).then(function(){lastSig='';return refresh()}).catch(onErr);return}
+ var on=!st.done[id];
+ if(mode==='db'){var r=db.doc('done/'+id);(on?r.set({ts:Date.now()}):r.delete()).catch(onErr);return}
+ if(on)st.done[id]=Date.now();else delete st.done[id];saveLocal();renderAll();renderSelect($('city').value)}
+function addItem(coll,obj){
+ if(mode==='sb')return sb('POST','/rest/v1/'+coll,obj).then(function(){lastSig='';return refresh()}).catch(onErr);
+ if(mode==='db')return db.collection(coll).add(obj).catch(onErr);
+ if(coll==='marks'){st.marks.push(obj);saveLocal();renderTrail()}
+ return Promise.resolve()}
+function subscribe(){
+ db.collection('done').onSnapshot(function(s){var d={};s.docs.forEach(function(x){d[x.id]=x.data().ts});st.done=d;renderStrip();renderCities();renderSelect($('city').value)},onErr);
+ db.collection('marks').orderBy('ts').onSnapshot(function(s){st.marks=s.docs.map(function(x){return x.data()});renderTrail()},onErr);
+ db.collection('photos').orderBy('ts').onSnapshot(function(s){st.photos=s.docs.map(function(x){var d=x.data();d.docId=x.id;return d});renderPhotos()},onErr)}
+
+$('cities').addEventListener('click',function(e){var h=e.target.closest('h2[data-k]');if(h){$('city').value=h.getAttribute('data-k');renderTrail();return}var b=e.target.closest('.item');if(b)toggleDone(b.getAttribute('data-id'))});
+$('city').addEventListener('change',renderTrail);
+$('photos').addEventListener('click',function(e){if(e.target.tagName==='IMG')openLb(e.target)});
+$('photos').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.tagName==='IMG')openLb(e.target)});
+$('lb').addEventListener('click',function(e){if(e.target.id!=='lbi'&&e.target.id!=='lbd')closeLb()});
+$('lbd').addEventListener('click',function(){
+ if(!delArmed){delArmed=true;$('lbd').textContent='Na pewno? Kliknij jeszcze raz';delTimer=setTimeout(resetDel,4000);return}
+ var pid=curPid;resetDel();deletePhoto(pid)});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('lb').hidden)closeLb()});
+$('mark').addEventListener('click',function(){
+ say('Szukam lokalizacji…');var city=$('city').value,l=$('label').value.trim();
+ function done(lat,lon,t){addItem('marks',{city:city,label:l,ts:Date.now(),lat:lat,lon:lon});$('label').value='';say(t)}
+ if(!navigator.geolocation){done(null,null,'Zapisano bez lokalizacji (brak GPS w tej przeglądarce).');return}
+ navigator.geolocation.getCurrentPosition(function(p){done(p.coords.latitude,p.coords.longitude,'Zapisano miejsce razem z lokalizacją.')},
+  function(){done(null,null,'Zapisano bez lokalizacji (brak zgody lub sygnału GPS).')},{enableHighAccuracy:true,timeout:12000,maximumAge:30000})});
+
+function shrink(file){return new Promise(function(res,rej){var u=URL.createObjectURL(file),im=new Image();
+ im.onload=function(){var s=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);
+  c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(function(b){b?res(b):rej(new Error('Nie udało się przygotować zdjęcia'))},'image/jpeg',.82)};
+ im.onerror=function(){rej(new Error('Nie udało się wczytać zdjęcia'))};im.src=u})}
+$('file').addEventListener('change',function(e){
+ var f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+ var city=$('city').value,l=$('label').value.trim();say('Przygotowuję zdjęcie…');
+ shrink(f).then(function(b){
+  if(mode==='sb'){var path=Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.jpg';return sb('POST','/storage/v1/object/photos/'+path,b,{'Content-Type':'image/jpeg'}).then(function(){return addItem('photos',{city:city,label:l,ts:Date.now(),path:path})})}
+  if(mode==='db'&&assets)return assets.upload(b).then(function(r){return addItem('photos',{city:city,label:l,asset:r.id,ts:Date.now()})});
+  var o={id:'p'+Date.now()+Math.random().toString(36).slice(2,6),city:city,label:l,ts:Date.now(),blob:b};
+  return idbPut(o).then(function(){st.photos.push(o);renderPhotos()})
+ }).then(function(){$('label').value='';say('Zdjęcie dodane.')})
+ .catch(function(err){say('Nie udało się dodać zdjęcia: '+((err&&err.message)||'spróbuj ponownie'))})});
+
+/* ---- local photo storage (IndexedDB) and the downloadable keepsake ---- */
+var idb=null;
+function openIdb(){return new Promise(function(res){try{var r=indexedDB.open('wlosko-photos',1);r.onupgradeneeded=function(){r.result.createObjectStore('p',{keyPath:'id'})};r.onsuccess=function(){idb=r.result;res(true)};r.onerror=function(){res(false)}}catch(e){res(false)}})}
+function idbAll(){return new Promise(function(res){if(!idb)return res([]);var q=idb.transaction('p').objectStore('p').getAll();q.onsuccess=function(){res(q.result||[])};q.onerror=function(){res([])}})}
+function idbPut(o){return new Promise(function(res,rej){if(!idb)return rej(new Error('Przeglądarka nie zapisze zdjęć'));var t=idb.transaction('p','readwrite');t.objectStore('p').put(o);t.oncomplete=function(){res()};t.onerror=function(){rej(new Error('Brak miejsca na zdjęcia'))}})}
+function rd(b){return new Promise(function(res){var r=new FileReader();r.onload=function(){res(r.result)};r.onerror=function(){res('')};r.readAsDataURL(b)})}
+var SOUV='<style>:root{--bg:#F4F4F2;--paper:#E5EDED;--ink:#1D2B33;--accent:#2F5D6B;--muted:#5F747D;--line:#B9CBCD;color-scheme:light}@media(prefers-color-scheme:dark){:root{--bg:#0E1112;--paper:#111A1D;--ink:#E3ECEC;--accent:#86B8C7;--muted:#8FA4AC;--line:#2C3F44;color-scheme:dark}}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Georgia,serif}section{background:var(--paper);color:var(--ink);border-radius:18px;padding:4px 18px 18px;margin:16px 0}main{max-width:620px;margin:0 auto;padding:28px 18px 56px}h1{font-size:44px;margin:4px 0 18px;font-weight:400}h2{font-size:28px;font-weight:400;margin:30px 0 8px}.k,small{color:var(--muted);font-size:13px}ul,ol{padding-left:20px}li.y b{color:var(--accent)}svg{width:100%;height:auto;border:1px dashed var(--line);border-radius:12px;margin:10px 0}.g{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}figure{margin:0}img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;display:block}figcaption{font-size:17px;margin-top:4px}small{display:block}[hidden]{display:none!important}img{cursor:zoom-in}.lb{position:fixed;inset:0;background:rgba(8,14,16,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}.lb img{max-width:100%;max-height:80vh;object-fit:contain;aspect-ratio:auto;cursor:default}.lb p{color:#E3ECEC;font-size:20px;margin:12px 0 0;text-align:center}.lb button{position:absolute;top:12px;right:14px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.45);color:#fff;font-size:26px;cursor:pointer}</style>';
+function buildSouvenir(){
+ return Promise.all(st.photos.map(function(p){return rd(p.blob).then(function(u){return{city:p.city,label:p.label,ts:p.ts,u:u}})})).then(function(ph){
+  var body=CITIES.map(function(c){
+   var ms=st.marks.filter(function(m){return m.city===c.k}),pos=ms.filter(function(m){return m.lat!=null}),pp=ph.filter(function(p){return p.city===c.k});
+   var pts=c.pts.map(function(p){var d=st.done[p.id];return'<li class="'+(d?'y':'')+'"><b>'+(d?'✓':'○')+'</b> '+esc(p.t)+(d?' <small>'+fmt(d)+'</small>':'')+'</li>'}).join('');
+   var tr=pos.length?'<svg viewBox="0 0 320 220">'+trailInner(pos)+'</svg>':'';
+   var mk=ms.length?'<ol>'+ms.map(function(m){return'<li>'+esc(m.label||'Miejsce bez nazwy')+'<small>'+fmt(m.ts)+'</small></li>'}).join('')+'</ol>':'';
+   var gr=pp.length?'<div class="g">'+pp.map(function(p){return'<figure><img src="'+p.u+'" alt=""><figcaption>'+esc(p.label||'')+'<small>'+fmt(p.ts)+'</small></figcaption></figure>'}).join('')+'</div>':'';
+   return'<section class="c-'+c.k+'"><h2>'+c.n+'</h2><ul>'+pts+'</ul>'+tr+mk+gr+'</section>'}).join('');
+  return'<!DOCTYPE html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Włoska wyprawa, pamiątka</title>'+SOUV.replace('</style>',scCss()+'</style>')+'</head><body><main><p class="k">Włoska wyprawa</p><h1>Nasza trasa</h1>'+body+'</main><div class="lb" id="lb" hidden><button type="button" aria-label="Zamknij">×</button><img id="lbi" alt=""><p id="lbc"></p></div><script>var b=document.getElementById("lb"),i=document.getElementById("lbi"),c=document.getElementById("lbc");document.addEventListener("click",function(e){var t=e.target;if(t.tagName==="IMG"&&t.id!=="lbi"){i.src=t.src;var f=t.parentNode.querySelector("figcaption");c.textContent=f&&f.firstChild?f.firstChild.textContent:"";b.hidden=false}else if(!b.hidden&&t.id!=="lbi"){b.hidden=true}});<\/script></body></html>'})}
+$('export').addEventListener('click',function(){
+ say('Przygotowuję plik…');
+ buildSouvenir().then(function(h){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([h],{type:'text/html'}));a.download='wloska-wyprawa-pamiatka.html';document.body.appendChild(a);a.click();a.remove();say('Plik gotowy. Wyślij go dalej, otworzy się bez internetu.')})
+ .catch(function(){say('Nie udało się przygotować pliku.')})});
+
+$('logb').addEventListener('click',function(){
+ var em=$('em').value.trim(),pw=$('pw').value,lm=$('logmsg');
+ if(!em||!pw){lm.textContent='Wpisz e-mail i hasło.';return}
+ lm.textContent='Loguję…';
+ authReq('password',{email:em,password:pw}).then(function(j){setSession(j);$('pw').value='';lm.textContent='';showLogin(false);lastSig='';refresh()})
+  .catch(function(e){lm.textContent='Nie udało się zalogować: '+e.message})});
+$('pw').addEventListener('keydown',function(e){if(e.key==='Enter')$('logb').click()});
+$('logout').addEventListener('click',function(){auth=null;saveAuth();lastSig='';st={done:{},marks:[],photos:[]};renderAll();showLogin(true)});
+var armed=false,rb=$('reset');
+rb.addEventListener('click',function(){
+ if(!armed){armed=true;rb.textContent='Na pewno? Kliknij jeszcze raz';setTimeout(function(){armed=false;rb.textContent='Wyczyść dane'},4000);return}
+ armed=false;rb.textContent='Wyczyść dane';
+ if(mode!=='local'){say('Wspólne dane i zdjęcia zostają, usuń je ręcznie, jeśli trzeba.');return}
+ st={done:{},marks:[],photos:[]};saveLocal();try{if(idb)idb.transaction('p','readwrite').objectStore('p').clear()}catch(e){}renderAll();renderSelect(curCity())});
+
+loadLocal();renderSelect(curCity());renderAll();
+openIdb().then(function(ok){if(!ok||mode!=='local')return;$('photoBtn').hidden=false;$('export').hidden=false;return idbAll().then(function(a){if(mode!=='local')return;st.photos=a.sort(function(x,y){return x.ts-y.ts});renderPhotos()})});
+if(sbOn()){mode='sb';st={done:{},marks:[],photos:[]};$('sync').textContent='Dane wspólne dla was obojga (odświeżają się co kilka sekund).';$('export').hidden=true;$('photoBtn').hidden=false;$('logout').hidden=false;loadAuth();showLogin(!auth);if(auth)refresh();setInterval(function(){if(!document.hidden&&auth)refresh()},8000);document.addEventListener('visibilitychange',function(){if(!document.hidden&&auth)refresh()})}
+else if(window.claude&&claude.use){
+ claude.use('db').then(function(d){
+  if(!d)return;db=d;mode='db';st={done:{},marks:[],photos:[]};
+  $('sync').textContent='Dane wspólne dla was obojga (aktualizują się na żywo).';$('export').hidden=true;$('photoBtn').hidden=true;
+  subscribe();
+  return claude.use('assets').then(function(a){if(a){assets=a;$('photoBtn').hidden=false}})
+ }).catch(function(){})}
+})();
+</script>
+</body>
+</html>
