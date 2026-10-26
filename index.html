@@ -6,6 +6,7 @@
 <title>Włoska wyprawa – dziennik trasy</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 :root{--paper:#E5EDED;--card:#EEF4F4;--ink:#1D2B33;--accent:#2F5D6B;--muted:#5F747D;--line:#B9CBCD;color-scheme:light;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -54,6 +55,12 @@ ol.marks small{display:block;color:var(--muted)}
 .grid small{display:block;font:400 12px "Instrument Sans",system-ui,sans-serif;color:var(--muted)}
 .sync{font-size:12px;color:var(--muted);margin:-14px 0 22px}
 [hidden]{display:none!important}
+#map{height:280px;border-radius:12px;border:1px dashed var(--line);margin-top:14px;background:var(--paper);position:relative;z-index:0}
+.pin{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--paper);font:600 12px system-ui,sans-serif;border:2px solid var(--paper)}
+ol.marks li{align-items:flex-start}
+ol.marks li>span{flex:1;min-width:0}
+ol.marks a{color:var(--accent)}
+.delm{flex:none;font:600 12px "Instrument Sans",system-ui,sans-serif;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
 .grid img{cursor:zoom-in}
 h2[data-k]{cursor:pointer}
 .lb{position:fixed;inset:0;z-index:50;background:rgba(8,14,16,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
@@ -92,6 +99,7 @@ h2[data-k]{cursor:pointer}
     <div class="row"><button class="btn" id="mark" type="button">Zaznacz miejsce</button>
     <label class="btn ghost" id="photoBtn" hidden>Dodaj zdjęcie<input type="file" id="file" accept="image/*" hidden></label></div>
     <p class="msg" id="msg" role="status"></p>
+    <div id="map" hidden></div>
     <svg class="trail" id="trail" viewBox="0 0 320 220" role="img" aria-label="Schemat naszej trasy w wybranym mieście"></svg>
     <ol class="marks" id="marks"></ol>
     <div class="grid" id="photos"></div>
@@ -105,6 +113,7 @@ h2[data-k]{cursor:pointer}
   </div>
   </div>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Podgląd zdjęcia"><button type="button" id="lbx" aria-label="Zamknij">×</button><img id="lbi" alt=""><p id="lbc"></p><button type="button" class="lbdel" id="lbd">Usuń zdjęcie</button></div>
 <script>
 (function(){
@@ -194,6 +203,7 @@ function themeCss(){return CITIES.map(function(c){var q=PAL[c.k];return':root[da
 function scCss(){return CITIES.map(function(c){var q=PAL[c.k];return'.c-'+c.k+'{'+tv(q.l)+'}@media(prefers-color-scheme:dark){.c-'+c.k+'{'+tv(q.d)+'}}'}).join('')}
 var tsty=document.createElement('style');tsty.textContent=themeCss();document.head.appendChild(tsty);
 function applyTheme(){document.documentElement.setAttribute('data-city',$('city').value||'t')}
+function mk(m){return String(m.id||m.docId||m.ts)}
 var urls={};
 function pu(p){if(p.url)return p.url;if(p.blob)return urls[p.id]||(urls[p.id]=URL.createObjectURL(p.blob));return'/_blob/'+p.asset}
 function renderPhotos(){
@@ -206,12 +216,33 @@ function trailInner(pos){
  var pts=pos.map(function(m,i){return[ox+(xs[i]-minx)*sc,oy+(maxy-m.lat)*sc]});
  var ln=pts.length>1?'<polyline points="'+pts.map(function(q){return q[0].toFixed(1)+','+q[1].toFixed(1)}).join(' ')+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round" stroke-linejoin="round"/>':'';
  return ln+pts.map(function(q,i){return'<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="9" fill="var(--accent)"/><text x="'+q[0].toFixed(1)+'" y="'+(q[1]+4).toFixed(1)+'" text-anchor="middle" font-size="11" font-weight="600" fill="var(--paper)" font-family="system-ui,sans-serif">'+(i+1)+'</text>'}).join('')}
+var map=null,layer=null;
+function useMap(){return!!window.L&&!window.claude}
+function gmaps(m){return'https://www.google.com/maps/search/?api=1&query='+m.lat+','+m.lon}
+function drawMap(pos){
+ var el=$('map');
+ if(!map){map=L.map(el).setView([45.5,13],5);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);layer=L.layerGroup().addTo(map)}
+ layer.clearLayers();
+ var ll=pos.map(function(m){return[m.lat,m.lon]}),ac=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#2F5D6B';
+ if(ll.length>1)L.polyline(ll,{color:ac,weight:3,dashArray:'6 6'}).addTo(layer);
+ pos.forEach(function(m,i){L.marker([m.lat,m.lon],{icon:L.divIcon({className:'',html:'<span class="pin">'+(i+1)+'</span>',iconSize:[26,26],iconAnchor:[13,13]})})
+  .bindPopup('<b>'+esc(m.label||'Miejsce bez nazwy')+'</b><br><a href="'+gmaps(m)+'" target="_blank" rel="noopener">Otwórz w Mapach Google</a>').addTo(layer)});
+ map.fitBounds(ll,{padding:[30,30],maxZoom:16});
+ setTimeout(function(){map.invalidateSize()},0)}
 function renderTrail(){
  var k=$('city').value,ms=st.marks.filter(function(m){return m.city===k}),svg=$('trail'),pos=ms.filter(function(m){return m.lat!=null});
- $('marks').innerHTML=ms.map(function(m,i){return'<li><b>'+(i+1)+'</b><span>'+esc(m.label||'Miejsce bez nazwy')+'<small>'+fmt(m.ts)+(m.lat==null?' · bez lokalizacji':'')+'</small></span></li>'}).join('');
+ $('marks').innerHTML=ms.map(function(m,i){var arm=(delMid===mk(m));return'<li><b>'+(i+1)+'</b><span>'+esc(m.label||'Miejsce bez nazwy')+'<small>'+fmt(m.ts)+(m.lat==null?' · bez lokalizacji':' · <a href="'+gmaps(m)+'" target="_blank" rel="noopener">Otwórz w Mapach</a>')+'</small></span><button class="delm" type="button" data-mid="'+esc(mk(m))+'" aria-label="Usuń punkt">'+(arm?'Na pewno?':'Usuń')+'</button></li>'}).join('');
  renderPhotos();
  applyTheme();
+ if(useMap()&&pos.length){svg.hidden=true;$('map').hidden=false;drawMap(pos);return}
+ $('map').hidden=true;svg.hidden=false;
  svg.innerHTML=pos.length?trailInner(pos):'<text x="160" y="114" text-anchor="middle" fill="currentColor" opacity=".55" font-size="13" font-family="Instrument Sans,system-ui,sans-serif">Tu pojawi się nasz szlak</text>'}
+var delMid=null,delMT=null;
+function deleteMark(mid){
+ var m=st.marks.find(function(x){return mk(x)===mid});if(!m)return;
+ if(mode==='sb'){sb('DELETE','/rest/v1/marks?id=eq.'+m.id).then(function(){lastSig='';return refresh()}).catch(onErr);return}
+ if(mode==='db'){db.doc('marks/'+m.docId).delete().catch(onErr);return}
+ st.marks=st.marks.filter(function(x){return x!==m});saveLocal();renderTrail()}
 function renderAll(){renderStrip();renderCities();renderTrail()}
 
 /* ---- store: shared db when available, otherwise this phone only ---- */
@@ -223,15 +254,18 @@ function toggleDone(id){
 function addItem(coll,obj){
  if(mode==='sb')return sb('POST','/rest/v1/'+coll,obj).then(function(){lastSig='';return refresh()}).catch(onErr);
  if(mode==='db')return db.collection(coll).add(obj).catch(onErr);
- if(coll==='marks'){st.marks.push(obj);saveLocal();renderTrail()}
+ if(coll==='marks'){obj.id='m'+Date.now()+Math.random().toString(36).slice(2,5);st.marks.push(obj);saveLocal();renderTrail()}
  return Promise.resolve()}
 function subscribe(){
  db.collection('done').onSnapshot(function(s){var d={};s.docs.forEach(function(x){d[x.id]=x.data().ts});st.done=d;renderStrip();renderCities();renderSelect($('city').value)},onErr);
- db.collection('marks').orderBy('ts').onSnapshot(function(s){st.marks=s.docs.map(function(x){return x.data()});renderTrail()},onErr);
+ db.collection('marks').orderBy('ts').onSnapshot(function(s){st.marks=s.docs.map(function(x){var d=x.data();d.docId=x.id;return d});renderTrail()},onErr);
  db.collection('photos').orderBy('ts').onSnapshot(function(s){st.photos=s.docs.map(function(x){var d=x.data();d.docId=x.id;return d});renderPhotos()},onErr)}
 
 $('cities').addEventListener('click',function(e){var h=e.target.closest('h2[data-k]');if(h){$('city').value=h.getAttribute('data-k');renderTrail();return}var b=e.target.closest('.item');if(b)toggleDone(b.getAttribute('data-id'))});
 $('city').addEventListener('change',renderTrail);
+$('marks').addEventListener('click',function(e){var b=e.target.closest('.delm');if(!b)return;var id=b.getAttribute('data-mid');
+ if(delMid!==id){delMid=id;b.textContent='Na pewno?';clearTimeout(delMT);delMT=setTimeout(function(){delMid=null;renderTrail()},4000);return}
+ delMid=null;clearTimeout(delMT);deleteMark(id)});
 $('photos').addEventListener('click',function(e){if(e.target.tagName==='IMG')openLb(e.target)});
 $('photos').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.tagName==='IMG')openLb(e.target)});
 $('lb').addEventListener('click',function(e){if(e.target.id!=='lbi'&&e.target.id!=='lbd')closeLb()});
